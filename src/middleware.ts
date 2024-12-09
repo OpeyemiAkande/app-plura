@@ -30,6 +30,7 @@ export default authMiddleware({
     }
 
     if (url.pathname === "/sign-in" || url.pathname === "/sign-up") {
+      console.log(NextResponse.rewrite(new URL(`/agency/sign-in`, req.url)));
       return NextResponse.rewrite(new URL(`/agency/sign-in`, req.url));
     }
 

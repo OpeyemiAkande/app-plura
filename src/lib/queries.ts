@@ -176,6 +176,21 @@ export const verifyAndAcceptInvitation = async () => {
   }
 };
 
+export const getNotificationAndUser = async (agencyId: string) => {
+  try {
+    const response = await db.notification.findMany({
+      where: {agencyId},
+      include: {User: true},
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    return response;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const updateAgencyDetails = async (
   agencyId: string,
   agencyDetails: Partial<Agency>
