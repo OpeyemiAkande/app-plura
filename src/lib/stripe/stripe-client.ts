@@ -8,7 +8,6 @@ export const getStripe = (connectedAccountId?: string) => {
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
       {stripeAccount: connectedAccountId}
     );
-
-    return stripePromise;
   }
+  return stripePromise;
 };

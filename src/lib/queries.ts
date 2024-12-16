@@ -39,7 +39,7 @@ export const saveActivityLogsNotification = async ({
   description,
   subaccountId,
 }: {
-  agencyId: string;
+  agencyId?: string;
   description: string;
   subaccountId?: string;
 }) => {
@@ -202,8 +202,26 @@ export const updateAgencyDetails = async (
   return response;
 };
 
+export const getSubaccountDetails = async (subaccountId: string) => {
+  const response = await db.subAccount.findUnique({
+    where: {
+      id: subaccountId,
+    },
+  });
+  return response;
+};
+
 export const deleteAgency = async (agencyId: string) => {
   const response = await db.agency.delete({where: {id: agencyId}});
+  return response;
+};
+
+export const deleteSubAccount = async (subaccountId: string) => {
+  const response = await db.subAccount.delete({
+    where: {
+      id: subaccountId,
+    },
+  });
   return response;
 };
 
@@ -463,5 +481,17 @@ export const getUserPermissions = async (userId: string) => {
     select: {Permissions: {include: {SubAccount: true}}},
   });
 
+  return response;
+};
+
+export const getPipelines = async (subaccountId: string) => {
+  const response = await db.pipeline.findMany({
+    where: {subAccountId: subaccountId},
+    include: {
+      Lane: {
+        include: {Tickets: true},
+      },
+    },
+  });
   return response;
 };

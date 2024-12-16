@@ -63,21 +63,22 @@ const SubAccountDetails: React.FC<SubAccountDetailsProps> = ({
   userId,
   userName,
 }) => {
+  console.log(agencyDetails);
   const {toast} = useToast();
   const {setClose} = useModal();
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: details?.name,
-      companyEmail: details?.companyEmail,
-      companyPhone: details?.companyPhone,
-      address: details?.address,
-      city: details?.city,
-      zipCode: details?.zipCode,
-      state: details?.state,
-      country: details?.country,
-      subAccountLogo: details?.subAccountLogo,
+      name: details?.name || "",
+      companyEmail: details?.companyEmail || "",
+      companyPhone: details?.companyPhone || "",
+      address: details?.address || "",
+      city: details?.city || "",
+      zipCode: details?.zipCode || "",
+      state: details?.state || "",
+      country: details?.country || "",
+      subAccountLogo: details?.subAccountLogo || "",
     },
   });
 
@@ -144,7 +145,7 @@ const SubAccountDetails: React.FC<SubAccountDetailsProps> = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
-              disabled={isLoading}
+              disabled={isLoading || !form.formState.isValid}
               control={form.control}
               name="subAccountLogo"
               render={({field}) => (
@@ -282,7 +283,7 @@ const SubAccountDetails: React.FC<SubAccountDetailsProps> = ({
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled>
+            <Button type="submit" disabled={isLoading}>
               {isLoading ? <Loading /> : "Save Account Information"}
             </Button>
           </form>

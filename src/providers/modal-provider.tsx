@@ -21,7 +21,7 @@ export type ModalData = {
 type ModalContextType = {
   data: ModalData;
   isOpen: boolean;
-  setOpen: (model: React.ReactNode, fetchData?: () => Promise<any>) => void;
+  setOpen: (modal: React.ReactNode, fetchData?: () => Promise<any>) => void;
   setClose: () => void;
 };
 
@@ -48,7 +48,7 @@ const ModalProvider: React.FC<ModalProviderProps> = ({children}) => {
   ) => {
     if (modal) {
       if (fetchData) {
-        setData({...data, ...(await fetchData())} || {});
+        setData({...data, ...(await fetchData())});
       }
       setShowingModal(modal);
       setIsOpen(true);
@@ -57,6 +57,7 @@ const ModalProvider: React.FC<ModalProviderProps> = ({children}) => {
 
   const setClose = () => {
     setIsOpen(false);
+    setShowingModal(null);
     setData({});
   };
 
