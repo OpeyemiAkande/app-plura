@@ -4,7 +4,9 @@ import {clerkClient, currentUser} from "@clerk/nextjs";
 import {db} from "./db";
 import {redirect} from "next/navigation";
 import {v4} from "uuid";
-import {Agency, Plan, SubAccount, User} from "@prisma/client";
+import {Agency, Plan, Prisma, Role, SubAccount, User} from "@prisma/client";
+import {CreateFunnelFormSchema} from "./types";
+import {z} from "zod";
 
 export const getAuthUserDetails = async () => {
   const user = await currentUser();
@@ -56,6 +58,10 @@ export const saveActivityLogsNotification = async ({
         },
       },
     });
+
+    if (response) {
+      userData = response;
+    }
   } else {
     userData = await db.user.findUnique({
       where: {email: authUser?.emailAddresses[0].emailAddress},
@@ -225,6 +231,18 @@ export const deleteSubAccount = async (subaccountId: string) => {
   return response;
 };
 
+export const deleteUser = async (userId: string) => {
+  await clerkClient.users.updateUserMetadata(userId, {
+    privateMetadata: {
+      role: undefined,
+    },
+  });
+
+  const deletedUser = await db.user.delete({where: {id: userId}});
+
+  return deletedUser;
+};
+
 export const initUser = async (newUser: Partial<User>) => {
   const user = await currentUser();
   if (!user) return;
@@ -392,6 +410,36 @@ export const upsertSubAccount = async (subAccount: SubAccount) => {
   return response;
 };
 
+export const upsertContact = async (
+  contact: Prisma.ContactUncheckedCreateInput
+) => {
+  const response = await db.contact.upsert({
+    where: {id: contact.id || v4()},
+    update: contact,
+    create: contact,
+  });
+
+  return response;
+};
+
+export const upsertFunnel = async (
+  subaccountId: string,
+  funnel: z.infer<typeof CreateFunnelFormSchema> & {liveProducts: string},
+  funnelId: string
+) => {
+  const response = await db.funnel.upsert({
+    where: {id: funnelId},
+    update: funnel,
+    create: {
+      ...funnel,
+      id: funnelId || v4(),
+      subAccountId: subaccountId,
+    },
+  });
+
+  return response;
+};
+
 export const _getTicketsWithAllRelations = async (laneid: string) => {
   const response = await db.ticket.findMany({
     where: {laneId: laneid},
@@ -475,11 +523,45 @@ export const getTicketsWithTags = async (pipelineId: string) => {
   return response;
 };
 
+export const getUser = async (id: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      id,
+    },
+  });
+};
+
 export const getUserPermissions = async (userId: string) => {
   const response = await db.user.findUnique({
     where: {id: userId},
     select: {Permissions: {include: {SubAccount: true}}},
   });
+
+  return response;
+};
+
+export const sendInvitation = async (
+  role: Role,
+  email: string,
+  agencyId: string
+) => {
+  const response = await db.invitation.create({
+    data: {email, agencyId, role},
+  });
+
+  try {
+    const invitation = await clerkClient.invitations.createInvitation({
+      emailAddress: email,
+      redirectUrl: process.env.NEXT_PUBLIC_URL,
+      publicMetadata: {
+        throughInvitation: true,
+        role,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 
   return response;
 };
@@ -494,4 +576,42 @@ export const getPipelines = async (subaccountId: string) => {
     },
   });
   return response;
+};
+
+export const updateUser = async (user: Partial<User>) => {
+  const response = await db.user.update({
+    where: {email: user.email},
+    data: {...user},
+  });
+
+  await clerkClient.users.updateUserMetadata(response.id, {
+    privateMetadata: {
+      role: user.role || "SUBACCOUNT_USER",
+    },
+  });
+
+  return response;
+};
+
+export const changeUserPermissions = async (
+  permissionId: string | undefined,
+  userEmail: string,
+  subAccountId: string,
+  permission: boolean
+) => {
+  try {
+    const response = await db.permissions.upsert({
+      where: {id: permissionId},
+      update: {access: permission},
+      create: {
+        access: permission,
+        email: userEmail,
+        subAccountId: subAccountId,
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.log("🔴Could not change permission", error);
+  }
 };

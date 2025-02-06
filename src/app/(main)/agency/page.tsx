@@ -11,10 +11,6 @@ const Page = async ({
 }: {
   searchParams: {plan: Plan; state: string; code: string};
 }) => {
-  // const authUser = await currentUser();
-  // if (!authUser) return redirect("/agency/sign-in");
-  // console.log(object);
-
   const agencyId = await verifyAndAcceptInvitation();
   // get users details
   const user = await getAuthUserDetails();

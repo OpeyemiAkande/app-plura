@@ -29,8 +29,11 @@ export default authMiddleware({
       );
     }
 
+    if (!auth.userId && url.pathname.startsWith("/agency")) {
+      console.log("not authenticated");
+    }
+
     if (url.pathname === "/sign-in" || url.pathname === "/sign-up") {
-      console.log(NextResponse.rewrite(new URL(`/agency/sign-in`, req.url)));
       return NextResponse.rewrite(new URL(`/agency/sign-in`, req.url));
     }
 
