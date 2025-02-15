@@ -68,7 +68,7 @@ const FunnelProductsTable: React.FC<FunnelProductsTableProps> = ({
           ...liveProducts,
           {
             //@ts-ignore
-            product: product.default_price.id as string,
+            productId: product.default_price.id as string,
             //@ts-ignore
             recurring: !!product.default_price.recurring,
           },
