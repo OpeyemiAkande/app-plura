@@ -43,6 +43,7 @@ const LaunchPadPage = async ({params, searchParams}: Props) => {
     "agency",
     `launchpad__${agencyDetails.id}`
   );
+  console.log(searchParams);
 
   let connectedStripeAccount = false;
 

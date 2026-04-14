@@ -16,6 +16,7 @@ export const subscriptionCreated = async (
         SubAccount: true,
       },
     });
+
     if (!agency) {
       throw new Error("Could not find an agency to upsert the subscription");
     }
